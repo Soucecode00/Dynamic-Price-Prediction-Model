@@ -22,15 +22,15 @@ This project builds a machine learning model to predict optimal ride fares for a
 - Additional features had minimal impact on performance.
 
 ## 📈 Example Visualizations
-![Feature Importance](images/feature_importance.png)
 ![Correlation Heatmap](images/correlation_heatmap.png)
+![Predicted vs Actual Fare](images/acrual%20vs%20predicted.png)
 
 ## 📚 Learning & Next Steps
 - Gained hands-on experience in end-to-end ML workflow.
 - Next steps: Explore real-time data and advanced models (e.g., XGBoost, deep learning).
 
 ## 📬 Contact
-For questions or collaboration, reach out via [LinkedIn](https://www.linkedin.com/in/yourprofile).
+For questions or collaboration, reach out via [LinkedIn]((https://www.linkedin.com/in/manassebastian/)).
 
 ---
 
