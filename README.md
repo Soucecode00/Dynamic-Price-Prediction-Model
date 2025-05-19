@@ -12,8 +12,7 @@ This project builds a machine learning model to predict optimal ride fares for a
 
 ## 📂 Repository Structure
 - `notebooks/`: Jupyter notebook(s) with code and analysis.
-- `images/`: Key visualizations (feature importance, heatmaps).
-- `requirements.txt`: Python dependencies.
+- `images/`: Key visualizations (actual vss predicted plot, count plots).
 - `README.md`: Project summary and instructions.
 
 ## 📝 Key Results
@@ -22,15 +21,15 @@ This project builds a machine learning model to predict optimal ride fares for a
 - Additional features had minimal impact on performance.
 
 ## 📈 Example Visualizations
-![Correlation Heatmap](images/correlation_heatmap.png)
 ![Predicted vs Actual Fare](images/acrual%20vs%20predicted.png)
+![Count Plot of Numeric columns](images/count_plot_numerc.png)
 
 ## 📚 Learning & Next Steps
 - Gained hands-on experience in end-to-end ML workflow.
 - Next steps: Explore real-time data and advanced models (e.g., XGBoost, deep learning).
 
 ## 📬 Contact
-For questions or collaboration, reach out via [LinkedIn]((https://www.linkedin.com/in/manassebastian/)).
+For questions or collaboration, reach out via [LinkedIn](https://www.linkedin.com/in/manassebastian/).
 
 ---
 
