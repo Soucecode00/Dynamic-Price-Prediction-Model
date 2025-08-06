@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taxi Fare Prediction</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f9fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+    .card h2 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0 0.25rem;
+    }
+    input[type="number"], input[type="datetime-local"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #0066ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #0052cc;
+    }
+    #result {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Taxi Fare Prediction</h2>
+    <label>Pickup Latitude</label>
+    <input type="number" id="pickupLat" step="0.0001" required />
+
+    <label>Pickup Longitude</label>
+    <input type="number" id="pickupLon" step="0.0001" required />
+
+    <label>Dropoff Latitude</label>
+    <input type="number" id="dropoffLat" step="0.0001" required />
+
+    <label>Dropoff Longitude</label>
+    <input type="number" id="dropoffLon" step="0.0001" required />
+
+    <label>Passenger Count</label>
+    <input type="number" id="passengerCount" value="1" min="1" max="6" required />
+
+    <label>Pickup Date & Time</label>
+    <input type="datetime-local" id="pickupDateTime" />
+
+    <button onclick="predictFare()">Predict Fare</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function predictFare() {
+      const pickupLat = parseFloat(document.getElementById('pickupLat').value);
+      const pickupLon = parseFloat(document.getElementById('pickupLon').value);
+      const dropoffLat = parseFloat(document.getElementById('dropoffLat').value);
+      const dropoffLon = parseFloat(document.getElementById('dropoffLon').value);
+      const passengerCount = parseInt(document.getElementById('passengerCount').value);
+      const pickupDateTime = document.getElementById('pickupDateTime').value;
+
+      const payload = {
+        pickup_lat: pickupLat,
+        pickup_lon: pickupLon,
+        dropoff_lat: dropoffLat,
+        dropoff_lon: dropoffLon,
+        passenger_count: passengerCount,
+      };
+
+      if (pickupDateTime) {
+        payload.pickup_datetime = new Date(pickupDateTime).toISOString();
+      }
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('result').innerText = `Estimated Fare: $${data.predicted_fare}`;
+        } else {
+          document.getElementById('result').innerText = data.detail || 'Error predicting fare';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('result').innerText = 'Network error';
+      }
+    }
+  </script>
+</body>
+</html>
