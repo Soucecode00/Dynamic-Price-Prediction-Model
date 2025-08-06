@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RidePrice Pro - Real-Time Price Prediction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-car"></i>
+                    <span>RidePrice Pro</span>
+                </div>
+                <div class="header-actions">
+                    <div class="connection-status" id="connectionStatus">
+                        <i class="fas fa-circle"></i>
+                        <span>Connecting...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard">
+                <!-- Left Panel - Map and Location Input -->
+                <div class="left-panel">
+                    <div class="map-container">
+                        <div id="map"></div>
+                        <div class="map-overlay">
+                            <div class="location-inputs">
+                                <div class="input-group">
+                                    <i class="fas fa-map-marker-alt pickup-icon"></i>
+                                    <input type="text" id="pickupLocation" placeholder="Pickup location" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <i class="fas fa-map-marker-alt dropoff-icon"></i>
+                                    <input type="text" id="dropoffLocation" placeholder="Dropoff location" autocomplete="off">
+                                </div>
+                                <button class="predict-btn" id="predictBtn">
+                                    <i class="fas fa-calculator"></i>
+                                    Predict Price
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Results and Real-time Data -->
+                <div class="right-panel">
+                    <!-- Price Prediction Results -->
+                    <div class="results-card">
+                        <h3><i class="fas fa-dollar-sign"></i> Price Prediction</h3>
+                        <div class="price-display" id="priceDisplay">
+                            <div class="price-amount">$0.00</div>
+                            <div class="price-details">
+                                <div class="detail-item">
+                                    <span class="label">Distance:</span>
+                                    <span class="value" id="distanceValue">0.0 miles</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Duration:</span>
+                                    <span class="value" id="durationValue">0 min</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Surge Multiplier:</span>
+                                    <span class="value" id="surgeValue">1.0x</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Market Conditions -->
+                    <div class="market-conditions-card">
+                        <h3><i class="fas fa-chart-line"></i> Market Conditions</h3>
+                        <div class="conditions-grid">
+                            <div class="condition-item">
+                                <div class="condition-label">Demand</div>
+                                <div class="condition-value" id="demandValue">0.5</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="demandProgress"></div>
+                                </div>
+                            </div>
+                            <div class="condition-item">
+                                <div class="condition-label">Supply</div>
+                                <div class="condition-value" id="supplyValue">0.5</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="supplyProgress"></div>
+                                </div>
+                            </div>
+                            <div class="condition-item">
+                                <div class="condition-label">Weather</div>
+                                <div class="condition-value" id="weatherValue">Clear</div>
+                                <div class="weather-icon" id="weatherIcon">
+                                    <i class="fas fa-sun"></i>
+                                </div>
+                            </div>
+                            <div class="condition-item">
+                                <div class="condition-label">Traffic</div>
+                                <div class="condition-value" id="trafficValue">Normal</div>
+                                <div class="traffic-icon" id="trafficIcon">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price History Chart -->
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-area"></i> Price History</h3>
+                        <div class="chart-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Predictions -->
+                    <div class="recent-predictions-card">
+                        <h3><i class="fas fa-history"></i> Recent Predictions</h3>
+                        <div class="predictions-list" id="predictionsList">
+                            <div class="no-predictions">
+                                <i class="fas fa-info-circle"></i>
+                                <p>No predictions yet. Enter locations to get started.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Calculating price...</p>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div class="toast" id="toast">
+            <div class="toast-content">
+                <i class="toast-icon"></i>
+                <span class="toast-message"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/simple_app.js') }}"></script>
+</body>
+</html>

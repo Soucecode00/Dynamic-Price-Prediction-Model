@@ -1,0 +1,6 @@
+Flask==3.0.0
+Flask-SocketIO==5.3.6
+geopy==2.4.1
+python-socketio==5.9.0
+eventlet==0.35.2
+requests==2.31.0
