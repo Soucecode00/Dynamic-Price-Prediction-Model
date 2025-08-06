@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber-Style Real-Time Price Prediction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: 600px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .price-display {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .price-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .price-detail {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .market-status {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            text-align: center;
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .real-time-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .success {
+            background: #51cf66;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .price-amount {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-taxi"></i> Real-Time Price Prediction</h1>
+            <p>Get instant price estimates with dynamic pricing based on demand and supply</p>
+        </div>
+
+        <div class="main-content">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+            <div class="control-panel">
+                <h3><i class="fas fa-cog"></i> Ride Configuration</h3>
+                
+                <div class="form-group">
+                    <label for="pickup-lat">Pickup Latitude:</label>
+                    <input type="number" id="pickup-lat" step="0.000001" value="40.7589" placeholder="40.7589">
+                </div>
+
+                <div class="form-group">
+                    <label for="pickup-lng">Pickup Longitude:</label>
+                    <input type="number" id="pickup-lng" step="0.000001" value="-73.9851" placeholder="-73.9851">
+                </div>
+
+                <div class="form-group">
+                    <label for="dropoff-lat">Dropoff Latitude:</label>
+                    <input type="number" id="dropoff-lat" step="0.000001" value="40.7484" placeholder="40.7484">
+                </div>
+
+                <div class="form-group">
+                    <label for="dropoff-lng">Dropoff Longitude:</label>
+                    <input type="number" id="dropoff-lng" step="0.000001" value="-73.9857" placeholder="-73.9857">
+                </div>
+
+                <div class="form-group">
+                    <label for="ride-type">Ride Type:</label>
+                    <select id="ride-type">
+                        <option value="economy">Economy</option>
+                        <option value="comfort">Comfort</option>
+                        <option value="premium">Premium</option>
+                        <option value="luxury">Luxury</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="predictPrice()">
+                    <i class="fas fa-calculator"></i> Calculate Price
+                </button>
+
+                <div id="price-result" style="display: none;">
+                    <div class="price-display">
+                        <div class="price-amount" id="total-price">$0.00</div>
+                        <div>Total Fare</div>
+                        
+                        <div class="price-details">
+                            <div class="price-detail">
+                                <strong>Base Price:</strong><br>
+                                <span id="base-price">$0.00</span>
+                            </div>
+                            <div class="price-detail">
+                                <strong>Surge Multiplier:</strong><br>
+                                <span id="surge-multiplier">1.0x</span>
+                            </div>
+                            <div class="price-detail">
+                                <strong>Distance:</strong><br>
+                                <span id="distance">0 km</span>
+                            </div>
+                            <div class="price-detail">
+                                <strong>Duration:</strong><br>
+                                <span id="duration">0 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-status">
+                    <h4><span class="real-time-indicator"></span>Market Status</h4>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-value" id="demand-value">1.0</div>
+                            <div class="status-label">Demand</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-value" id="supply-value">1.0</div>
+                            <div class="status-label">Supply</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-value" id="surge-value">1.0x</div>
+                            <div class="status-label">Surge</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-value" id="timestamp">--</div>
+                            <div class="status-label">Updated</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let pickupMarker;
+        let dropoffMarker;
+        let routeLine;
+        let ws;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([40.7589, -73.9851], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add default markers
+            pickupMarker = L.marker([40.7589, -73.9851], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: '<div style="background-color: #4CAF50; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                })
+            }).addTo(map);
+
+            dropoffMarker = L.marker([40.7484, -73.9857], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: '<div style="background-color: #f44336; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                })
+            }).addTo(map);
+
+            // Draw route line
+            routeLine = L.polyline([[40.7589, -73.9851], [40.7484, -73.9857]], {
+                color: '#667eea',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(map);
+
+            // Fit map to show both markers
+            map.fitBounds(routeLine.getBounds());
+        }
+
+        // Update map markers and route
+        function updateMap() {
+            const pickupLat = parseFloat(document.getElementById('pickup-lat').value);
+            const pickupLng = parseFloat(document.getElementById('pickup-lng').value);
+            const dropoffLat = parseFloat(document.getElementById('dropoff-lat').value);
+            const dropoffLng = parseFloat(document.getElementById('dropoff-lng').value);
+
+            pickupMarker.setLatLng([pickupLat, pickupLng]);
+            dropoffMarker.setLatLng([dropoffLat, dropoffLng]);
+            
+            routeLine.setLatLngs([[pickupLat, pickupLng], [dropoffLat, dropoffLng]]);
+            
+            map.fitBounds(routeLine.getBounds());
+        }
+
+        // Predict price function
+        async function predictPrice() {
+            const pickupLat = parseFloat(document.getElementById('pickup-lat').value);
+            const pickupLng = parseFloat(document.getElementById('pickup-lng').value);
+            const dropoffLat = parseFloat(document.getElementById('dropoff-lat').value);
+            const dropoffLng = parseFloat(document.getElementById('dropoff-lng').value);
+            const rideType = document.getElementById('ride-type').value;
+
+            if (!pickupLat || !pickupLng || !dropoffLat || !dropoffLng) {
+                showMessage('Please fill in all coordinates', 'error');
+                return;
+            }
+
+            showMessage('Calculating price...', 'loading');
+
+            try {
+                const response = await fetch('/predict-price', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        pickup_lat: pickupLat,
+                        pickup_lng: pickupLng,
+                        dropoff_lat: dropoffLat,
+                        dropoff_lng: dropoffLng,
+                        ride_type: rideType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayPrice(data);
+                    showMessage('Price calculated successfully!', 'success');
+                } else {
+                    showMessage('Error calculating price: ' + data.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('Error connecting to server: ' + error.message, 'error');
+            }
+        }
+
+        // Display price results
+        function displayPrice(data) {
+            document.getElementById('total-price').textContent = `$${data.total_price}`;
+            document.getElementById('base-price').textContent = `$${data.base_price}`;
+            document.getElementById('surge-multiplier').textContent = `${data.surge_multiplier}x`;
+            document.getElementById('distance').textContent = `${data.estimated_distance} km`;
+            document.getElementById('duration').textContent = `${data.estimated_duration} min`;
+
+            document.getElementById('price-result').style.display = 'block';
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}/ws`);
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'market_update') {
+                    updateMarketStatus(data);
+                }
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket connection closed');
+                setTimeout(initWebSocket, 5000); // Reconnect after 5 seconds
+            };
+        }
+
+        // Update market status display
+        function updateMarketStatus(data) {
+            document.getElementById('demand-value').textContent = data.demand;
+            document.getElementById('supply-value').textContent = data.supply;
+            document.getElementById('surge-value').textContent = data.surge_multiplier + 'x';
+            document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleTimeString();
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            initWebSocket();
+
+            // Add event listeners for coordinate inputs
+            document.getElementById('pickup-lat').addEventListener('change', updateMap);
+            document.getElementById('pickup-lng').addEventListener('change', updateMap);
+            document.getElementById('dropoff-lat').addEventListener('change', updateMap);
+            document.getElementById('dropoff-lng').addEventListener('change', updateMap);
+        });
+    </script>
+</body>
+</html>
